@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Dibujos Mágicos - Binario Infantil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #ffeff7;
+            background-image: radial-gradient(#ffc2d1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .pixel {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+            border-radius: 12px;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1);
+        }
+        .pixel:active {
+            transform: scale(0.9);
+        }
+        .grid-container {
+            display: grid;
+            gap: 6px;
+            background-color: #ffffff;
+            padding: 12px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .icon-size {
+            font-size: 1.8rem;
+        }
+        @media (max-width: 640px) {
+            .icon-size { font-size: 1.2rem; }
+        }
+        .bubble-btn {
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .bubble-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.2);
+        }
+        .example-card {
+            background: white;
+            border-radius: 15px;
+            padding: 12px;
+            border: 3px solid #fecaca;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(244, 63, 94, 0.1);
+        }
+        .example-grid {
+            display: grid;
+            gap: 1px;
+            pointer-events: none;
+            width: 80px; /* Tamaño fijo para las miniaturas para que no se deformen */
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 6px;
+        }
+        .mini-pixel {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            border-radius: 1px;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-6 px-4">
+
+    <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur-md rounded-[40px] shadow-2xl overflow-hidden border-8 border-white">
+        
+        <!-- Cabecera -->
+        <div class="bg-yellow-300 p-6 text-center border-b-8 border-yellow-400">
+            <h1 class="text-3xl md:text-5xl font-bold text-orange-600 tracking-wide">
+                ✨ ¡Puntos Mágicos! ✨
+            </h1>
+        </div>
+
+        <div class="p-6 flex flex-col gap-8">
+            
+            <!-- SECCIÓN 1: PANEL DE CONTROL Y LIENZO -->
+            <div class="flex flex-col gap-6">
+                <!-- Controles -->
+                <div class="bg-orange-50 p-4 rounded-[30px] border-4 border-orange-100 flex flex-wrap justify-center items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <input type="color" id="color0" value="#ffffff" class="w-12 h-12 cursor-pointer border-2 border-white rounded-full shadow-md" onchange="updateAllColors()">
+                        <span class="text-2xl">☁️</span>
+                        <span class="font-bold text-orange-800">vs</span>
+                        <span class="text-2xl">☀️</span>
+                        <input type="color" id="color1" value="#ffce00" class="w-12 h-12 cursor-pointer border-2 border-white rounded-full shadow-md" onchange="updateAllColors()">
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="btn3" onclick="changeGridSize(3)" class="bubble-btn px-4 py-2 bg-green-400 text-white font-bold rounded-xl text-sm">Peque</button>
+                        <button id="btn5" onclick="changeGridSize(5)" class="bubble-btn px-4 py-2 bg-blue-400 text-white font-bold rounded-xl text-sm">Grande</button>
+                        <button id="btn8" onclick="changeGridSize(8)" class="bubble-btn px-4 py-2 bg-purple-400 text-white font-bold rounded-xl text-sm">¡GIGANTE!</button>
+                    </div>
+
+                    <button onclick="resetGrid()" class="bubble-btn px-6 py-2 bg-red-400 text-white font-bold rounded-xl text-sm">🗑️ Borrar</button>
+                </div>
+
+                <!-- Lienzo principal -->
+                <div class="flex flex-col items-center justify-center p-6 bg-white/50 rounded-3xl border-2 border-dashed border-orange-200">
+                    <div id="pixelGrid" class="grid-container"></div>
+                    <!-- Binario visual -->
+                    <div class="mt-6 flex flex-wrap justify-center gap-1 max-w-full p-2 bg-white rounded-full shadow-inner" id="visualBinary"></div>
+                </div>
+            </div>
+
+            <hr class="border-t-4 border-pink-100 border-dotted">
+
+            <!-- SECCIÓN 2: IDEAS Y EJEMPLOS (DEBAJO) -->
+            <div>
+                <h2 class="text-2xl font-bold text-pink-500 mb-4 flex items-center gap-2">
+                    💡 ¡Mira estas ideas! <span class="text-sm font-normal text-gray-400">(Haz clic en una para copiarla)</span>
+                </h2>
+                <!-- Contenedor único para todos los ejemplos -->
+                <div id="ideasContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+            </div>
+
+        </div>
+
+        <div class="bg-pink-100 p-4 text-center text-pink-600 font-bold text-sm italic">
+            "En el mundo de las máquinas, todo se construye con ceros y unos"
+        </div>
+    </div>
+
+    <script>
+        let gridSize = 5;
+        let gridData = [];
+
+        const PATTERNS = {
+            3: [
+                { name: "Corazón", data: "101111010" }, { name: "Carita", data: "101000111" },
+                { name: "Cruz", data: "010111010" }, { name: "Cuadro", data: "111101111" },
+                { name: "Flecha", data: "010111010" }, { name: "Letra L", data: "100100111" },
+                { name: "Letra T", data: "111010010" }, { name: "Barra", data: "000111000" },
+                { name: "Punto", data: "000010000" }, { name: "H", data: "101111101" }
+            ],
+            5: [
+                { name: "Corazón", data: "0101011111111110111000100" }, { name: "Carita", data: "0000001010000001000101110" },
+                { name: "Casa", data: "0010001110111111010110101" }, { name: "Flor", data: "0101011111010100010000100" },
+                { name: "Cruz", data: "0010000100111110010000100" }, { name: "Barco", data: "0010000110011101111101110" },
+                { name: "Árbol", data: "0111011111011100010000100" }, { name: "Pato", data: "0110011100011110111100000" },
+                { name: "Flecha", data: "0010001110111110010000100" }, { name: "Vino", data: "1111101010011100010001110" }
+            ],
+            8: [
+                { name: "Corazón", data: "0011001101111011111111111111111101111110001111000001100000000000" },
+                { name: "Carita", data: "0011110001000010101001011000000110100101100110010100001000111100" },
+                { name: "Casa", data: "0001100000111100011111101111111111011011110110111101101111111111" },
+                { name: "Flor", data: "0001100001111110111111110111111000011000000110000001100000011000" },
+                { name: "Estrella", data: "0001100000011000111111110111111000111100011001101100001100000000" },
+                { name: "Robot", data: "0111111010111101111111110011110000111100011111100101101001011010" },
+                { name: "Árbol", data: "0001100000111100011111101111111100111100000110000001100000011000" },
+                { name: "Gato", data: "1000000111000111011111100111111001011010011111100011110000011000" },
+                { name: "Regalo", data: "0001100001111110111111111101101111111111110110111111111111111111" },
+                { name: "Fantasma", data: "0011110001111110110110111111111111111111111111111111111110101010" }
+            ]
+        };
+
+        function initGrid() {
+            const container = document.getElementById('pixelGrid');
+            container.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            gridData = Array(gridSize * gridSize).fill(0);
+            
+            // Actualizar estado visual de los botones de tamaño
+            [3, 5, 8].forEach(s => {
+                const btn = document.getElementById(`btn${s}`);
+                if (s === gridSize) {
+                    btn.classList.add('ring-4', 'ring-white', 'scale-110');
+                } else {
+                    btn.classList.remove('ring-4', 'ring-white', 'scale-110');
+                }
+            });
+
+            renderGrid();
+            renderIdeas();
+        }
+
+        function updateAllColors() {
+            renderGrid();
+            renderIdeas();
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('pixelGrid');
+            const visualBinary = document.getElementById('visualBinary');
+            const color0 = document.getElementById('color0').value;
+            const color1 = document.getElementById('color1').value;
+            
+            container.innerHTML = '';
+            visualBinary.innerHTML = '';
+            
+            gridData.forEach((val, index) => {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                pixel.style.backgroundColor = val === 0 ? color0 : color1;
+                
+                const icon = document.createElement('span');
+                icon.className = 'icon-size';
+                icon.textContent = val === 0 ? '☁️' : '☀️';
+                icon.style.opacity = "0.8";
+                
+                pixel.appendChild(icon);
+                pixel.onclick = () => togglePixel(index);
+                container.appendChild(pixel);
+
+                // Mini puntos de estado binario debajo del dibujo
+                const miniIcon = document.createElement('span');
+                miniIcon.style.fontSize = '12px';
+                miniIcon.textContent = val === 0 ? '⚪' : '🟡';
+                visualBinary.appendChild(miniIcon);
+            });
+        }
+
+        function renderIdeas() {
+            const container = document.getElementById('ideasContainer');
+            const color0 = document.getElementById('color0').value;
+            const color1 = document.getElementById('color1').value;
+            
+            container.innerHTML = '';
+
+            PATTERNS[gridSize].forEach((idea) => {
+                const card = document.createElement('div');
+                card.className = 'example-card shadow-md';
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'example-grid';
+                gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+                
+                idea.data.split('').forEach(bit => {
+                    const dot = document.createElement('div');
+                    dot.className = 'mini-pixel';
+                    dot.style.backgroundColor = bit === '1' ? color1 : color0;
+                    gridDiv.appendChild(dot);
+                });
+
+                const label = document.createElement('span');
+                label.className = 'text-[11px] font-bold text-gray-600 mt-2 uppercase text-center w-full truncate';
+                label.textContent = idea.name;
+
+                card.appendChild(gridDiv);
+                card.appendChild(label);
+                
+                card.onclick = () => {
+                    gridData = idea.data.split('').map(Number);
+                    renderGrid();
+                    // Scroll suave hacia arriba para ver el resultado
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+
+                container.appendChild(card);
+            });
+        }
+
+        function togglePixel(index) {
+            gridData[index] = gridData[index] === 0 ? 1 : 0;
+            renderGrid();
+        }
+
+        function changeGridSize(size) {
+            gridSize = size;
+            initGrid();
+        }
+
+        function resetGrid() {
+            gridData = Array(gridSize * gridSize).fill(0);
+            renderGrid();
+        }
+
+        window.onload = initGrid;
+    </script>
+</body>
+</html>
