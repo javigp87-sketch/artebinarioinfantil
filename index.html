@@ -60,15 +60,21 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 2px;
             cursor: pointer;
+            width: 100%;
         }
         .example-grid {
             display: grid;
-            gap: 1px;
+            gap: 0px;
             pointer-events: none;
+            line-height: 1;
         }
         .example-dot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             line-height: 1;
         }
     </style>
@@ -87,7 +93,7 @@
         <div class="flex flex-col xl:flex-row gap-6 p-4">
             
             <!-- Izquierda: Ideas 1-5 -->
-            <div id="ideasLeft" class="hidden xl:grid grid-cols-1 gap-4 w-48"></div>
+            <div id="ideasLeft" class="hidden xl:grid grid-cols-1 gap-4 w-56"></div>
 
             <div class="flex-1 flex flex-col gap-6">
                 <!-- Panel Central Superior: Controles -->
@@ -102,7 +108,7 @@
 
                     <div class="flex gap-2">
                         <button id="btn3" onclick="changeGridSize(3)" class="bubble-btn px-4 py-2 bg-green-400 text-white font-bold rounded-xl text-sm">Peque</button>
-                        <button id="btn5" onclick="changeGridSize(5)" class="bubble-btn px-4 py-2 bg-blue-400 text-white font-bold rounded-xl text-sm border-4 border-white">Grande</button>
+                        <button id="btn5" onclick="changeGridSize(5)" class="bubble-btn px-4 py-2 bg-blue-400 text-white font-bold rounded-xl text-sm">Grande</button>
                         <button id="btn8" onclick="changeGridSize(8)" class="bubble-btn px-4 py-2 bg-purple-400 text-white font-bold rounded-xl text-sm">¡GIGANTE!</button>
                     </div>
 
@@ -120,7 +126,7 @@
             </div>
 
             <!-- Derecha: Ideas 6-10 -->
-            <div id="ideasRight" class="hidden xl:grid grid-cols-1 gap-4 w-48"></div>
+            <div id="ideasRight" class="hidden xl:grid grid-cols-1 gap-4 w-56"></div>
         </div>
 
         <div class="bg-pink-100 p-3 text-center text-pink-600 font-bold text-sm">
@@ -132,7 +138,6 @@
         let gridSize = 5;
         let gridData = [];
 
-        // Base de datos de patrones por tamaño
         const PATTERNS = {
             3: [
                 { name: "Corazón", data: "101111010" },
@@ -177,10 +182,10 @@
             container.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
             gridData = Array(gridSize * gridSize).fill(0);
             
-            // Actualizar botones activos
             [3, 5, 8].forEach(s => {
-                document.getElementById(`btn${s}`).classList.toggle('border-4', s === gridSize);
-                document.getElementById(`btn${s}`).classList.toggle('border-white', s === gridSize);
+                const btn = document.getElementById(`btn${s}`);
+                btn.classList.toggle('border-4', s === gridSize);
+                btn.classList.toggle('border-white', s === gridSize);
             });
 
             renderGrid();
@@ -235,8 +240,10 @@
                 gridDiv.className = 'example-grid';
                 gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
                 
-                // Ajustar tamaño de iconos en las miniaturas según el tamaño de cuadrícula
-                const fontSize = gridSize === 3 ? '1rem' : gridSize === 5 ? '0.6rem' : '0.4rem';
+                // AJUSTE CRÍTICO: Fuente aún más pequeña para 8x8
+                let fontSize = '1rem'; 
+                if(gridSize === 5) fontSize = '0.7rem';
+                if(gridSize === 8) fontSize = '0.45rem';
                 
                 idea.data.split('').forEach(bit => {
                     const dot = document.createElement('span');
@@ -247,26 +254,28 @@
                 });
 
                 const label = document.createElement('span');
-                label.className = 'text-[9px] font-bold text-gray-500 mt-1 uppercase tracking-tighter';
+                label.className = 'text-[9px] font-bold text-gray-500 mt-1 uppercase tracking-tighter text-center';
                 label.textContent = idea.name;
 
                 card.appendChild(gridDiv);
                 card.appendChild(label);
                 
-                card.onclick = () => {
+                const loadIdea = () => {
                     gridData = idea.data.split('').map(Number);
                     renderGrid();
                 };
 
+                card.onclick = loadIdea;
+
                 if (index < 5) left.appendChild(card);
                 else {
                     const rightCard = card.cloneNode(true);
-                    rightCard.onclick = card.onclick;
+                    rightCard.onclick = loadIdea;
                     right.appendChild(rightCard);
                 }
                 
                 const mobileCard = card.cloneNode(true);
-                mobileCard.onclick = card.onclick;
+                mobileCard.onclick = loadIdea;
                 mobile.appendChild(mobileCard);
             });
         }
